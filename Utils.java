@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 
 public final class Utils {
     
@@ -81,7 +83,7 @@ public final class Utils {
 
     private static Crash processLine(String line){
 
-        String[] fields = line.trim().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+        String[] fields = line.trim().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",-1);
         // for (String string : fields) {
         //     System.out.println(string);            
         // }
@@ -89,8 +91,17 @@ public final class Utils {
             throw new InvalidParameterException("Wrong number of parameters detected");
         }
         //TODO: date parses to 20s instead of 19s. To be fixed
-        LocalDate date = fields[0].trim().isEmpty()? null : LocalDate.parse(fields[0].trim(), DateTimeFormatter.ofPattern("M/d/yy"));
-        LocalTime time = fields[1].trim().isEmpty()? null : LocalTime.parse(fields[1].trim(), DateTimeFormatter.ofPattern("H:m"));
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("M/d/")
+        .optionalStart()
+        .appendPattern("uuuu")
+        .optionalEnd()
+        .optionalStart()
+        .appendValueReduced(ChronoField.YEAR, 2, 2, 1920)
+        .optionalEnd()
+        .toFormatter();
+
+        LocalDate date = fields[0].trim().isEmpty()? null : LocalDate.parse(fields[0].trim(), formatter);
+        LocalTime time = fields[1].trim().isEmpty()? null : LocalTime.parse(fields[1].trim().replaceAll("[a-zA-Z]",""), DateTimeFormatter.ofPattern("H:m"));
         String location = fields[2].trim();
         String operation = fields[3].trim();
         String flight = fields[4].trim();

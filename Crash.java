@@ -1,6 +1,5 @@
 import java.time.LocalDate;
 import java.time.LocalTime;
-
 public class Crash {
     private LocalDate date;
     private LocalTime time;
@@ -87,6 +86,60 @@ public class Crash {
     }
     public String getClustID() {
         return clustID;
+    }
+
+    public String filedValueAsString(String fieldName){
+        switch(fieldName){
+            case "date":
+                return String.valueOf(this.date);
+        
+            case "time":
+                return String.valueOf(this.time);
+            
+            case "location":
+                return this.location;
+        
+            case "operator":
+                return this.operator;
+        
+            case "flight":
+                return this.flight;
+        
+            case "route":
+                return this.route;
+        
+            case "type":
+                return this.type;
+            case "registration":
+                return this.registration;
+        
+            case "cn_In":
+                return this.cn_In;
+        
+            case "aboard":
+                return String.valueOf(this.aboard);
+        
+            case "fatalities":
+                return String.valueOf(this.fatalities);
+            
+            case "ground": 
+                return String.valueOf(this.ground);
+        
+            case "survivors":
+                return String.valueOf(this.survivors);
+        
+            case "survivalRate":
+                return String.valueOf(this.survivalRate);
+        
+            case "summary":
+                return String.valueOf(this.summary);
+        
+            case "clustId":
+                return this.clustID;
+
+            default:
+                return " ";
+        }
     }
 
     @Override
