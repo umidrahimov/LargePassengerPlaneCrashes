@@ -15,8 +15,17 @@ public class FileParser{
                 for(int i =0 ; i < parsed.length; i++){
                     Cell c = new Cell();
                     String trimedText = parsed[i].trim();
+                    if(trimedText.equals("")){
+                        trimedText = "NULL"; // replace missing values with null so that user knows about it
+                    }
                     try{
-                        c.setInt(Integer.parseInt(trimedText));
+                        if(i>=9 && i<= 12){ // only 10th- 13th fields are integers
+                            c.setInt(Integer.parseInt(trimedText));
+                        }else if(i == 13){
+                            c.setDouble(Double.parseDouble(trimedText));
+                        }else{
+                            c.setStr(trimedText);
+                        }
                     }catch(Exception e){
                         c.setStr(trimedText);  
                     }
@@ -32,14 +41,8 @@ public class FileParser{
     }
 
     public static void main(String args[]){
-        ArrayList<ArrayList<Cell>> data = readCsvFile("Large_Passenger_Plane_Crashes_1933_to_2009.csv");
-        for(Cell c: data.get(0)){
-            if(c.isStr()){
-                System.out.println("String val: " + c.getStr());
-            }else{
-                System.out.print("Int val: ");
-                System.out.println(c.getInt());
-            }
-        }
+        DataFrame df = new DataFrame(readCsvFile("Large_Passenger_Plane_Crashes_1933_to_2009.csv"));
+        int[] specifiedIndex = {0,1,2,3};
+        df.listEntities(1, 10, specifiedIndex);
     }
 }
