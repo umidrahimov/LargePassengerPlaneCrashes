@@ -88,7 +88,7 @@ public class Crash {
         return clustID;
     }
 
-    public String filedValueAsString(String fieldName){
+    public String fieldValueAsString(String fieldName){
         switch(fieldName){
             case "date":
                 return String.valueOf(this.date);
