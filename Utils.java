@@ -13,6 +13,12 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
 public final class Utils {
+
+    private static String[] headers;
+
+    public static String[] getHeaders() {
+        return headers;
+    }
     
     public static ArrayList<Crash> readFromFile(String path){
 
@@ -22,6 +28,7 @@ public final class Utils {
         try (FileReader fr = new FileReader(file); BufferedReader br = new BufferedReader(fr)) {
 
             String line = br.readLine();    //Reads header of the file
+            headers = processHeader(line);  //Processes header and stores in static variable
 
             while ((line = br.readLine()) != null){
                 Crash temp = processLine(line);
@@ -84,13 +91,11 @@ public final class Utils {
     private static Crash processLine(String line){
 
         String[] fields = line.trim().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",-1);
-        // for (String string : fields) {
-        //     System.out.println(string);            
-        // }
+
         if (fields.length!=16) {
             throw new InvalidParameterException("Wrong number of parameters detected");
         }
-        //TODO: date parses to 20s instead of 19s. To be fixed
+
         DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("M/d/")
         .optionalStart()
         .appendPattern("uuuu")
@@ -121,4 +126,18 @@ public final class Utils {
         cn_In, aboard, fatalities, ground, survivors, survivalRate, summary, clustID);
     }
 
+    private static String[] processHeader(String line){
+
+        String[] fields = line.toLowerCase().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",-1);
+
+        if (fields.length!=16) {
+            throw new InvalidParameterException("Wrong number of parameters detected");
+        }
+
+        for (int i = 0; i < fields.length; i++) {
+            fields[i] = fields[i].trim().replaceAll("\\.*$", "");
+        }
+
+        return fields;
+    }
 }
