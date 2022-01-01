@@ -9,14 +9,14 @@ public class Crash {
     private String route;
     private String type;
     private String registration;
-    private String cn_In;
+    private String cn_in;
     private int aboard;
     private int fatalities;
     private int ground;
     private int survivors;
-    private double survivalRate;
+    private double survivalrate;
     private String summary;
-    private String clustID;
+    private String clustid;
     
     public Crash(LocalDate date, LocalTime time, String location, String operator, String flight, String route, String type,
             String registration, String cn_In, int aboard, int fatalities, int ground, int survivors,
@@ -29,14 +29,14 @@ public class Crash {
         this.route = route;
         this.type = type;
         this.registration = registration;
-        this.cn_In = cn_In;
+        this.cn_in = cn_In;
         this.aboard = aboard;
         this.fatalities = fatalities;
         this.ground = ground;
         this.survivors = survivors;
-        this.survivalRate = survivalRate;
+        this.survivalrate = survivalRate;
         this.summary = summary;
-        this.clustID = clustID;
+        this.clustid = clustID;
     }
     
     public LocalDate getLocalDate() {
@@ -64,7 +64,7 @@ public class Crash {
         return registration;
     }
     public String getCn_In() {
-        return cn_In;
+        return cn_in;
     }
     public int getAboard() {
         return aboard;
@@ -79,13 +79,13 @@ public class Crash {
         return survivors;
     }
     public double getSurvivalRate() {
-        return survivalRate;
+        return survivalrate;
     }
     public String getSummary() {
         return summary;
     }
     public String getClustID() {
-        return clustID;
+        return clustid;
     }
 
     public String fieldValueAsString(String fieldName){
@@ -114,7 +114,7 @@ public class Crash {
                 return this.registration;
         
             case "cn_In":
-                return this.cn_In;
+                return this.cn_in;
         
             case "aboard":
                 return String.valueOf(this.aboard);
@@ -129,13 +129,13 @@ public class Crash {
                 return String.valueOf(this.survivors);
         
             case "survivalRate":
-                return String.valueOf(this.survivalRate);
+                return String.valueOf(this.survivalrate);
         
             case "summary":
                 return String.valueOf(this.summary);
         
             case "clustId":
-                return this.clustID;
+                return this.clustid;
 
             default:
                 return " ";
@@ -145,8 +145,8 @@ public class Crash {
     @Override
     public String toString() {
         return "[date: " + date+ ", time: " + time + ", location: " + location + ", operator: " + operator + ", flight: " + flight + ", route: " + route
-        + ", type: " + type + ", registration: " + registration + ", cn_In: " + cn_In + ", aboard: " + aboard + ", fatalities: " + fatalities
-        + ", ground: " + ground + ", survivors: " + survivors + ", survivalRate: " + survivalRate + ", summary: " + summary + ", clustID: " + clustID + "]";
+        + ", type: " + type + ", registration: " + registration + ", cn_In: " + cn_in + ", aboard: " + aboard + ", fatalities: " + fatalities
+        + ", ground: " + ground + ", survivors: " + survivors + ", survivalRate: " + survivalrate + ", summary: " + summary + ", clustID: " + clustid + "]";
     }
     
 }

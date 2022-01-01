@@ -1,5 +1,4 @@
 import java.util.List;
-import java.util.ArrayList;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,23 +16,34 @@ public abstract class ReportManager {
         return strFields;
     }
 
+    //UR
+    static void listCrashes(List<Crash> crashes){
+        listCrashes(crashes, 0, crashes.size());
+    }
+
     static void listCrashes(List<Crash> crashes, int start , int end){
-        for (int i = start; i<= end ; i++) {
+        for (int i = start; i < end; i++) {
             System.out.println(crashes.get(i).toString());
         }
 
         System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1));
     }
 
+    //UR
+    static void listCrashes(List<Crash> crashes, String[] specifiedFields){
+        listCrashes(crashes, 0, crashes.size(), specifiedFields);
+    }
+    
     static void listCrashes(List<Crash> crashes, int start , int end, String[] specifiedFields){
         String[] fieldNames = getFieldNames(crashes.get(0));
 
-        
-        for (int i = start; i<= end ; i++) {
+        for (int i = start; i < end ; i++) {
             System.out.print("[");
             for(int j = 0; j<16 ; j++){
                 for(String specifiedField: specifiedFields){
-                    if(fieldNames[j]==specifiedField){
+                    //UR: compare by value, not reference
+                    if(fieldNames[j].equals(specifiedField)){
+                    //if(fieldNames[j]==specifiedField){
                         System.out.print(fieldNames[j] + ": " + crashes.get(i).fieldValueAsString(fieldNames[j]) + ", ");
                         break;
                     }
@@ -41,24 +51,23 @@ public abstract class ReportManager {
             }
             System.out.println("]");
         }
-        System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1));
+        System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1) + "\n");
     }
 
-
-    static ArrayList<Crash> sortByFieldName(ArrayList<Crash> crashes , String fieldName, String order){
-
-        if (order == "" || order == " "){ // by default not specified orders are in ascending mode
+    static List<Crash> sortByFieldName(List<Crash> crashes, String fieldName, String order) {
+        //UR: Menu is designed in the way that order will never be empty or null
+        if (order == "" || order == " ") { // by default not specified orders are in ascending mode
             order = "asc";
         }
 
-        if (fieldName ==  "date"){
+        if (fieldName == "date") {
             if(order == "asc")
                 crashes.sort(Comparator.comparing(f -> f.getLocalDate(), Comparator.nullsFirst(Comparator.naturalOrder())));
             else if(order == "desc")
                 crashes.sort(Collections.reverseOrder(Comparator.comparing(f -> f.getLocalDate(), Comparator.nullsFirst(Comparator.naturalOrder()))));
         }
 
-        else if (fieldName ==  "time"){
+        else if (fieldName == "time") {
             if(order == "asc")
                 crashes.sort(Comparator.comparing(f -> f.getTime(), Comparator.nullsFirst(Comparator.naturalOrder())));
             else if(order == "desc")
