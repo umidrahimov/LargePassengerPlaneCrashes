@@ -38,7 +38,7 @@ public class Menu {
                 sortEntities();
             break;
             case 3:
-                
+                searchEntities();
             break;
             case 4:
                 listCoulmnNames();
@@ -90,10 +90,10 @@ public class Menu {
             }
     }
 
-    static int getIntInput(int... allowedNumbers){
+    int getIntInput(int... allowedNumbers){
         while (true) {
             String input = scan.nextLine();
-            if(!tryParseInt(input)){
+            if(!Utils.tryParseInt(input)){
                 System.out.println("Integer value is expected. Try again:");
                 continue;
             }
@@ -121,7 +121,7 @@ public class Menu {
             }
             for (int i = 0; i < ranges.length; i++) {
                 ranges[i] = ranges[i].trim();
-                if(!tryParseInt(ranges[i])){
+                if(!Utils.tryParseInt(ranges[i])){
                     System.out.println("Integer values are expected for the range. Try again:");
                     continue;
                 }
@@ -153,11 +153,11 @@ public class Menu {
                 Sort sort = getSortConditions();
                 List<Crash> sortedList = ReportManager.sortByFieldName(crashes, sort.getColumn(), sort.getOrder());
                 ReportManager.listCrashes(sortedList);
-            break;
+                break;
             case 0:
                 mainMenu();
-            break;
-            }
+                break;
+        }
     }
 
     Sort getSortConditions(){
@@ -182,6 +182,46 @@ public class Menu {
             }
             Sort sort = new Sort(column, order);
             return sort;
+        }
+    }
+
+    void searchEntities(){
+        System.out.println("\t 1 - Set search conditions");
+        System.out.println("\t 0 - Back");
+
+        int selection = getIntInput(1, 0);
+        switch (selection) {
+            case 1:
+                Search search = getSearchConditions();
+                List<Crash> filteredList = ReportManager.searchByFieldName(crashes, search.getColumn(), search.getValue());
+                ReportManager.listCrashes(filteredList);
+                break;
+            case 0:
+                mainMenu();
+                break;
+        }
+    }
+
+    Search getSearchConditions() {
+        System.out.println("Please enter search conditions. E.g: {fieldname} {value}"); 
+        while (true) {
+            String input = scan.nextLine().toLowerCase();
+            if(input.isEmpty()){
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+            String[] params = input.split(" ");
+            if (params.length < 2) {
+                System.out.println("No less than 2 inputs are expected for searching. E.g: {fieldname} {value}");
+                continue;
+            }
+            String column = params[0].trim();
+            String value = params[1].trim();
+            if(params.length>2){
+                value = input.substring(input.indexOf(column.length())).trim();
+            }
+            Search search = new Search(column, value);
+            return search;
         }
     }
 
@@ -211,13 +251,4 @@ public class Menu {
             return trueFields.stream().toArray(String[]::new);
         }
     }
-
-    private static boolean tryParseInt(String value) {  
-        try {  
-            Integer.parseInt(value);  
-            return true;  
-         } catch (NumberFormatException e) {  
-            return false;  
-         }  
-   }
 }

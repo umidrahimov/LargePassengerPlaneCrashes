@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.stream.Collectors;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,11 +19,17 @@ public abstract class ReportManager {
 
     //UR
     static void listCrashes(List<Crash> crashes){
-        listCrashes(crashes, 0, crashes.size());
+        listCrashes(crashes, 0, crashes.size() - 1);
     }
 
     static void listCrashes(List<Crash> crashes, int start , int end){
-        for (int i = start; i < end; i++) {
+        //UR: check if list is empty or null
+        if(crashes == null || crashes.isEmpty()){
+            System.out.println("\nTotal number of records listed: 0");
+            return;
+        }
+        
+        for (int i = start; i <= end; i++) {
             System.out.println(crashes.get(i).toString());
         }
 
@@ -162,5 +169,37 @@ public abstract class ReportManager {
         }
 
         return crashes;
+    }
+
+    public static List<Crash> searchByFieldName(List<Crash> crashes, String column, String targetValue) {
+        return crashes.stream()
+        .filter(crash -> checkFieldValue(crash, column, targetValue))
+        .collect(Collectors.toList());
+    }
+
+    private static boolean checkFieldValue(Crash crash, String column, String targetValue) {
+        try {
+            Field field = crash.getClass().getDeclaredField(column);    
+            field.setAccessible(true);
+            Object value = field.get(crash);
+
+            if (targetValue == null || targetValue == "null" && value == null)
+                return true;
+
+            if (value instanceof String) {
+                if (((String) value).toLowerCase().contains(targetValue))
+                    return true;
+                return false;
+            }
+
+            if(value == targetValue)
+                return true;
+            
+            return false;
+            } catch (Exception e) {
+            System.out.println("Exception: " + e.getMessage());
+            return false;
+        }
+
     }
 }
