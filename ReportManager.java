@@ -1,13 +1,13 @@
 import java.util.List;
 import java.util.stream.Collectors;
+
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Comparator;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 public abstract class ReportManager {
     static String[] getFieldNames(Crash crash){
-        Class ftClass = crash.getClass();
-		Field[] fields = ftClass.getDeclaredFields();
+		Field[] fields = crash.getClass().getDeclaredFields();
         String[] strFields = new String[16];
 
         for(int i = 0 ; i<16; i++){
@@ -61,114 +61,53 @@ public abstract class ReportManager {
         System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1) + "\n");
     }
 
-    static List<Crash> sortByFieldName(List<Crash> crashes, String fieldName, String order) {
-        //UR: Menu is designed in the way that order will never be empty or null
-        if (order == "" || order == " ") { // by default not specified orders are in ascending mode
-            order = "asc";
-        }
+    //UR: rewrote sort method using reflection
+    public static List<Crash> sortByFieldName(List<Crash> list, String fieldName, String order) {
+        try {
+            Field field = Crash.class.getDeclaredField(fieldName);
+            field.setAccessible(true);
 
-        if (fieldName == "date") {
-            if(order == "asc")
-                crashes.sort(Comparator.comparing(f -> f.getLocalDate(), Comparator.nullsFirst(Comparator.naturalOrder())));
-            else if(order == "desc")
-                crashes.sort(Collections.reverseOrder(Comparator.comparing(f -> f.getLocalDate(), Comparator.nullsFirst(Comparator.naturalOrder()))));
+            return list.stream().sorted((first, second) -> {
+                try {
+                    Object val1 = field.get(first);
+                    Object val2 = field.get(second);
+                    if (val1 == null)
+                        return -1;
+                    else if (val2 == null)
+                        return 1;
+                    if (val1 instanceof String && val2 instanceof String) {
+                        if ("asc".equals(order))
+                            return ((String) val1).compareTo((String) val2);
+                        else
+                            return ((String) val2).compareTo((String) val1);
+                    }
+                    if (val1 instanceof LocalDate && val2 instanceof LocalDate) {
+                        if ("asc".equals(order))
+                            return ((LocalDate) val1).compareTo((LocalDate) val2);
+                        else
+                            return ((LocalDate) val2).compareTo((LocalDate) val1);
+                    } else if (val1 instanceof LocalTime && val2 instanceof LocalTime) {
+                        if ("asc".equals(order))
+                            return ((LocalTime) val1).compareTo((LocalTime) val2);
+                        else
+                            return ((LocalTime) val2).compareTo((LocalTime) val1);
+                    } else {
+                        Number num1 = (Number)val1;
+                        Number num2 = (Number)val2;
+                        if ("asc".equals(order))
+                            return Float.valueOf(num1.floatValue()).compareTo(Float.valueOf(num2.floatValue()));
+                        else
+                            return Float.valueOf(num2.floatValue()).compareTo(Float.valueOf(num1.floatValue()));
+                    }
+                } catch (IllegalAccessException e) {
+                    System.out.println("Error: " + e.getMessage());
+                    return 0;
+                }
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return list;
         }
-
-        else if (fieldName == "time") {
-            if(order == "asc")
-                crashes.sort(Comparator.comparing(f -> f.getTime(), Comparator.nullsFirst(Comparator.naturalOrder())));
-            else if(order == "desc")
-                crashes.sort(Collections.reverseOrder(Comparator.comparing(f -> f.getTime(), Comparator.nullsFirst(Comparator.naturalOrder()))));
-         }
-        else if (fieldName == "location"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getLocation().compareTo(f2.getLocation());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getLocation().compareTo(f2.getLocation());}));
-        }
-        else if (fieldName == "operator"){
-            if(order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getOperator().compareTo(f2.getOperator());});
-            else if(order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getOperator().compareTo(f2.getOperator());})); 
-        }
-        else if (fieldName == "flight"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getFlight().compareTo(f2.getFlight());});
-            else if(order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getFlight().compareTo(f2.getFlight());}));
-        }
-        else if (fieldName == "route"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getRoute().compareTo(f2.getRoute());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getRoute().compareTo(f2.getRoute());}));
-        }
-        else if (fieldName == "type"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getType().compareTo(f2.getType());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getType().compareTo(f2.getType());}));
-        }
-        else if (fieldName == "registration"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getRegistration().compareTo(f2.getRegistration());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getRegistration().compareTo(f2.getRegistration());}));
-        }
-        else if (fieldName == "cn_In"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getCn_In().compareTo(f2.getCn_In());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getCn_In().compareTo(f2.getCn_In());}));
-        }
-        else if (fieldName == "aboard"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return Integer.valueOf(f1.getAboard()).compareTo(f2.getAboard());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return Integer.valueOf(f1.getAboard()).compareTo(f2.getAboard());}));
-        }
-        else if (fieldName == "fatalities"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getRegistration().compareTo(f2.getRegistration());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getRegistration().compareTo(f2.getRegistration());}));
-        }
-        else if (fieldName == "ground"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return Integer.valueOf(f1.getGround()).compareTo(f2.getGround());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return Integer.valueOf(f1.getGround()).compareTo(f2.getGround());}));
-        }
-        else if (fieldName == "survivors"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return Integer.valueOf(f1.getSurvivors()).compareTo(f2.getSurvivors());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return Integer.valueOf(f1.getSurvivors()).compareTo(f2.getSurvivors());}));
-        }
-        else if(fieldName == "survivalRate"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return Double.valueOf(f1.getSurvivalRate()).compareTo(f2.getSurvivalRate());}); 
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return Double.valueOf(f1.getSurvivalRate()).compareTo(f2.getSurvivalRate());}));
-        }
-        else if (fieldName == "summary"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getSummary().compareTo(f2.getSummary());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getSummary().compareTo(f2.getSummary());}));
-        }
-        else if (fieldName == "clustId"){
-            if (order == "asc")
-                Collections.sort(crashes, (f1, f2)->{return f1.getClustID().compareTo(f2.getClustID());});
-            else if (order == "desc")
-                Collections.sort(crashes, Collections.reverseOrder((f1, f2)->{return f1.getClustID().compareTo(f2.getClustID());}));
-        }
-        else{
-            System.out.println("No such field exists!");
-        }
-
-        return crashes;
     }
 
     public static List<Crash> searchByFieldName(List<Crash> crashes, String column, String targetValue) {
@@ -200,6 +139,5 @@ public abstract class ReportManager {
             System.out.println("Exception: " + e.getMessage());
             return false;
         }
-
     }
 }
