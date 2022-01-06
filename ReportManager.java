@@ -17,13 +17,13 @@ public abstract class ReportManager {
         return strFields;
     }
 
-    //UR
+    //UR: added method
     static void listCrashes(List<Crash> crashes){
         listCrashes(crashes, 0, crashes.size() - 1);
     }
 
     static void listCrashes(List<Crash> crashes, int start , int end){
-        //UR: check if list is empty or null
+        //UR: added check if list is empty or null
         if(crashes == null || crashes.isEmpty()){
             System.out.println("\nTotal number of records listed: 0");
             return;
@@ -36,7 +36,7 @@ public abstract class ReportManager {
         System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1));
     }
 
-    //UR
+    //UR: added method
     static void listCrashes(List<Crash> crashes, String[] specifiedFields){
         listCrashes(crashes, 0, crashes.size(), specifiedFields);
     }
@@ -110,6 +110,12 @@ public abstract class ReportManager {
         }
     }
 
+    public static List<Crash> filterByValue(List<Crash> crashes, Filter filter) {
+        return crashes.stream()
+        .filter(crash -> checkFieldValue(crash, filter))
+        .collect(Collectors.toList());
+    }
+
     public static List<Crash> searchByFieldName(List<Crash> crashes, String column, String targetValue) {
         return crashes.stream()
         .filter(crash -> checkFieldValue(crash, column, targetValue))
@@ -136,6 +142,92 @@ public abstract class ReportManager {
             
             return false;
             } catch (Exception e) {
+            System.out.println("Exception: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static boolean checkFieldValue(Crash crash, Filter filter) {
+        try {
+            Field field = crash.getClass().getDeclaredField(filter.getColumn());
+            field.setAccessible(true);
+            Object value = field.get(crash);
+
+            switch (filter.getFilterCondition()) {
+                case startsWith:
+                    return (value.toString()).toLowerCase().startsWith(filter.getValue()) ? true : false;
+                case endsWith:
+                    return (value.toString()).toLowerCase().endsWith(filter.getValue()) ? true : false;
+                case contains:
+                    return (value.toString()).toLowerCase().contains(filter.getValue()) ? true : false;
+                case Null:
+                    return value == null ? true : false;
+                case equals:
+                    if(filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
+                    if(filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).equals(LocalTime.parse(filter.getValue())) ? true : false;
+                    if(filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).equals(Float.valueOf(filter.getValue())) ? true : false;
+                    break;
+                case greaterThan:
+                    if(filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue())) ? true : false;
+                    if(filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).isAfter(LocalTime.parse(filter.getValue())) ? true : false;
+                    if(filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) > 0 ? true : false;
+                    break;
+                case lessThan:
+                    if (filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).isBefore(LocalTime.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) < 0 ? true : false;
+                    break;
+                case greaterOrEqualTo:
+                    if (filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue()))
+                                || (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).isAfter(LocalTime.parse(filter.getValue()))
+                                || (LocalTime.parse(value.toString())).equals(LocalTime.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) >= 0 ? true : false;
+                    break;
+                case lessOrEqualTo:
+                    if (filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getValue()))
+                                || (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).isBefore(LocalTime.parse(filter.getValue()))
+                                || (LocalTime.parse(value.toString())).equals(LocalTime.parse(filter.getValue())) ? true : false;
+                    if (filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) <= 0 ? true : false;
+                    break;
+                case between:
+                    if (filter.getFieldType() == LocalDate.class)
+                        return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue()))
+                                && (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getLastValue())) ? true : false;
+                    if (filter.getFieldType() == LocalTime.class)
+                        return (LocalTime.parse(value.toString())).isAfter(LocalTime.parse(filter.getValue()))
+                                && (LocalTime.parse(value.toString())).isBefore(LocalTime.parse(filter.getLastValue())) ? true : false;
+                    if (filter.getFieldType() == Number.class)
+                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) <= 0 ? true
+                                : false;
+                    break;
+                case inSpecificYear:
+                    return (LocalDate.parse(value.toString()).getYear()) == (Integer.parseInt(filter.getValue())) ? true : false;
+                case inSpecificMonth:
+                    return (LocalDate.parse(value.toString()).getMonthValue()) == (Integer.parseInt(filter.getValue())) ? true : false;
+                case inSpecificDay:
+                    return (LocalDate.parse(value.toString()).getDayOfMonth()) == (Integer.parseInt(filter.getValue())) ? true : false;
+                default:
+                    break;
+            }
+            return false;
+        } catch (Exception e) {
             System.out.println("Exception: " + e.getMessage());
             return false;
         }
