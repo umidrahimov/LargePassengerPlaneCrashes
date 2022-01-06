@@ -20,41 +20,36 @@ public final class Utils {
         return headers;
     }
     
-    public static ArrayList<Crash> readFromFile(String path){
+    public static ArrayList<Crash> readFromFile(String path) {
 
         File file = new File(path);
         ArrayList<Crash> list = new ArrayList<>();
 
         try (FileReader fr = new FileReader(file); BufferedReader br = new BufferedReader(fr)) {
 
-            String line = br.readLine();    //Reads header of the file
-            headers = processHeader(line);  //Processes header and stores in static variable
+            String line = br.readLine(); // Reads header of the file
+            headers = processHeader(line); // Processes header and stores in static variable
 
-            while ((line = br.readLine()) != null){
+            while ((line = br.readLine()) != null) {
                 Crash temp = processLine(line);
                 list.add(temp);
             }
-        }
-        catch(FileNotFoundException ex){
+        } catch (FileNotFoundException ex) {
             System.out.println(ex.getMessage());
-        }
-        catch(IOException ex){
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
-        }
-        catch(InvalidParameterException ex){
+        } catch (InvalidParameterException ex) {
             System.out.println(ex.getMessage());
-        }        
-        catch(UnsupportedOperationException ex){
+        } catch (UnsupportedOperationException ex) {
             System.out.println(ex.getMessage());
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
 
         return list;
     }
 
-    public static Boolean writeToFile(String path, ArrayList<Crash> crashs, String header){
+    public static Boolean writeToFile(String path, ArrayList<Crash> crashs, String header) {
 
         File file = new File(path);
         try (FileWriter fw = new FileWriter(file)) {
@@ -65,48 +60,44 @@ public final class Utils {
                 fw.write(crash.toString() + "\n");
             }
             return true;
-        }
-        catch(FileNotFoundException ex){
+        } catch (FileNotFoundException ex) {
             System.out.println("Caught exception: " + ex.getMessage());
             return false;
-        }
-        catch(IOException ex){
+        } catch (IOException ex) {
             System.out.println("Caught exception: " + ex.getMessage());
             return false;
-        }
-        catch(InvalidParameterException ex){
+        } catch (InvalidParameterException ex) {
             System.out.println("Caught exception: " + ex.getMessage());
             return false;
-        }        
-        catch(UnsupportedOperationException ex){
+        } catch (UnsupportedOperationException ex) {
             System.out.println("Caught exception: " + ex.getMessage());
             return false;
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
             return false;
         }
     }
 
-    private static Crash processLine(String line){
+    private static Crash processLine(String line) {
 
-        String[] fields = line.trim().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",-1);
+        String[] fields = line.trim().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-        if (fields.length!=16) {
+        if (fields.length != 16) {
             throw new InvalidParameterException("Wrong number of parameters detected");
         }
 
         DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendPattern("M/d/")
-        .optionalStart()
-        .appendPattern("uuuu")
-        .optionalEnd()
-        .optionalStart()
-        .appendValueReduced(ChronoField.YEAR, 2, 2, 1920)
-        .optionalEnd()
-        .toFormatter();
+                .optionalStart()
+                .appendPattern("uuuu")
+                .optionalEnd()
+                .optionalStart()
+                .appendValueReduced(ChronoField.YEAR, 2, 2, 1920)
+                .optionalEnd()
+                .toFormatter();
 
-        LocalDate date = fields[0].trim().isEmpty()? null : LocalDate.parse(fields[0].trim(), formatter);
-        LocalTime time = fields[1].trim().isEmpty()? null : LocalTime.parse(fields[1].trim().replaceAll("[a-zA-Z]",""), DateTimeFormatter.ofPattern("H:m"));
+        LocalDate date = fields[0].trim().isEmpty() ? null : LocalDate.parse(fields[0].trim(), formatter);
+        LocalTime time = fields[1].trim().isEmpty() ? null
+                : LocalTime.parse(fields[1].trim().replaceAll("[a-zA-Z]", ""), DateTimeFormatter.ofPattern("H:m"));
         String location = fields[2].trim();
         String operation = fields[3].trim();
         String flight = fields[4].trim();
@@ -122,15 +113,15 @@ public final class Utils {
         String summary = fields[14].trim();
         String clustID = fields[15].trim();
 
-        return new Crash(date, time, location, operation, flight,route, type, registration,
-        cn_In, aboard, fatalities, ground, survivors, survivalRate, summary, clustID);
+        return new Crash(date, time, location, operation, flight, route, type, registration,
+                cn_In, aboard, fatalities, ground, survivors, survivalRate, summary, clustID);
     }
 
-    private static String[] processHeader(String line){
+    private static String[] processHeader(String line) {
 
-        String[] fields = line.toLowerCase().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)",-1);
+        String[] fields = line.toLowerCase().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
-        if (fields.length!=16) {
+        if (fields.length != 16) {
             throw new InvalidParameterException("Wrong number of parameters detected");
         }
 
@@ -141,12 +132,39 @@ public final class Utils {
         return fields;
     }
 
-    public static boolean tryParseInt(String value) {  
-        try {  
-            Integer.parseInt(value);  
-            return true;  
-         } catch (NumberFormatException e) {  
-            return false;  
-         }  
-   }
+    //TODO: Make 1 generic method
+    public static boolean tryParseInt(String value) {
+        try {
+            Integer.parseInt(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+    public static boolean tryParseNumber(String value) {
+        try {
+            Float.parseFloat(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static boolean tryParseTime(String value) {
+        try {
+            LocalTime.parse(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public static boolean tryParseDate(String value) {
+        try {
+            LocalDate.parse(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 }

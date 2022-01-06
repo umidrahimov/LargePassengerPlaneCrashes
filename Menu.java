@@ -1,3 +1,6 @@
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,31 +29,339 @@ public class Menu {
         System.out.println("\t 2 - to sort all entities");
         System.out.println("\t 3 - to search entities");
         System.out.println("\t 4 - to list column names");
+        System.out.println("\t 5 - to filter entities");
         System.out.println("\t 0 - to exit");
 
-        int selection = getIntInput(1, 2, 3, 4, 0);
+        int selection = getIntInput(1, 2, 3, 4, 5, 0);
 
         switch (selection) {
             case 1:
                 listEntities();
-            break;
+                break;
             case 2:
                 sortEntities();
-            break;
+                break;
             case 3:
                 searchEntities();
-            break;
+                break;
             case 4:
                 listCoulmnNames();
-            break;
+                break;
             case 5:
-            
-            break;
+                filterEntities();
+                break;
             case 0:
                 System.exit(0);
+                break;
+        }
+    }
+
+    void filterEntities() {
+        System.out.println("\t 1 - Set filter conditions");
+        System.out.println("\t 0 - Back");
+
+        int selection = getIntInput(1, 0);
+        switch (selection) {
+            case 1:
+                Filter filter = getFilterConditions();
+                List<Crash> filteredList = ReportManager.filterByValue(crashes, filter);
+                ReportManager.listCrashes(filteredList);
+                break;
+            case 0:
+                mainMenu();
+                break;
+        }
+    }
+
+    Filter getFilterConditions() {
+        System.out.println("Please enter field name:");
+        while (true) {
+            try {
+                String input = scan.nextLine().toLowerCase().trim();
+                if (input.isEmpty()) {
+                    System.out.println("Empty input is detected.");
+                    continue;
+                }
+                if (!Arrays.stream(headers).anyMatch(input::equals)) {
+                    System.out.println("No such column exists. Try again: ");
+                    continue;
+                }
+                Field field = Crash.class.getDeclaredField(input);
+                Class fieldType = field.getType();
+                Filter filter = null;
+                if (fieldType.equals(String.class)) {
+                    filter = getStringFilter(input);
+                } else if (fieldType.equals(Number.class)) {
+                    filter = getNumberFilter(input);
+                } else if (fieldType.equals(LocalTime.class)) {
+                    filter = getTimeFilter(input);
+                } else if (fieldType.equals(LocalDate.class)) {
+                    filter = getDateFilter(input);
+                }
+                return filter;
+            } catch (NoSuchFieldException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Filter getDateFilter(String column) {
+        printDateSubMenu();
+
+        int selection = getIntInput(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        String searchValue = null;
+        FilterCondition condition = null;
+        switch (selection) {
+            case 1:
+                searchValue = getDateValue();
+                condition = FilterCondition.equals;
+                break;
+            case 2:
+                searchValue = getDateValue();
+                condition = FilterCondition.greaterThan;
+                break;
+            case 3:
+                searchValue = getDateValue();
+                condition = FilterCondition.lessThan;
+                break;
+            case 4:
+                searchValue = getDateValue();
+                condition = FilterCondition.greaterOrEqualTo;
+                break;
+            case 5:
+                searchValue = getDateValue();
+                condition = FilterCondition.lessOrEqualTo;
+                break;
+            case 6:
+                searchValue = getDateValue();
+                condition = FilterCondition.between;
+                break;
+            case 7:
+                condition = FilterCondition.Null;
+                break;
+            case 8:
+                searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1900, 2022).toArray()));
+                condition = FilterCondition.inSpecificYear;
+                break;
+            case 9:
+            searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 12).toArray()));
+            condition = FilterCondition.inSpecificMonth;
+                break;
+            case 10:
+            searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 31).toArray()));
+            condition = FilterCondition.inSpecificDay;
+            break;
+        }
+        return new Filter(column, LocalDate.class, searchValue, condition);
+    }
+
+    private String getDateValue() {
+        System.out.println("Please enter value to search:");
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+            if (!Utils.tryParseDate(input)) {
+                System.out.println("Date vaue is expexted.");
+                continue;
+            }
+            return input;
+        }    
+    }
+
+    private void printDateSubMenu() {
+        System.out.println("\t 1 - Equals");
+        System.out.println("\t 2 - Greater than");
+        System.out.println("\t 3 - Less than");
+        System.out.println("\t 4 - Greater than or equal to");
+        System.out.println("\t 5 - Less than or equal to");
+        System.out.println("\t 6 - Between");
+        System.out.println("\t 7 - Null");
+        System.out.println("\t 8 - In a specific year");
+        System.out.println("\t 9 - In a specific month");
+        System.out.println("\t 10 - In a specific day");
+
+        System.out.println("\t 0 - Back");
+    }
+
+    Filter getStringFilter(String column) {
+        printStringSubMenu();
+
+        int selection = getIntInput(1, 2, 3, 4, 0);
+        String searchValue = null;
+        FilterCondition condition = null;
+        switch (selection) {
+            case 1:
+                searchValue = getStringValue();
+                condition = FilterCondition.startsWith;
+                break;
+            case 2:
+                searchValue = getStringValue();
+                condition = FilterCondition.endsWith;
+                break;
+            case 3:
+                searchValue = getStringValue();
+                condition = FilterCondition.contains;
+                break;
+            case 4:
+                condition = FilterCondition.Null;
+                break;
+            case 0:
+                mainMenu();
+                break;
+        }
+        return new Filter(column, String.class, searchValue, condition);
+    }
+
+    private void printStringSubMenu() {
+        System.out.println("\t 1 - Starts with");
+        System.out.println("\t 2 - Ends with");
+        System.out.println("\t 3 - Contains");
+        System.out.println("\t 4 - Null");
+        System.out.println("\t 0 - Back");
+    }
+
+    Filter getNumberFilter(String column){
+        printNumbericSubMenu();
+
+        int selection = getIntInput(1, 2, 3, 4, 5, 6, 7, 0);
+        String searchValue = null;
+        FilterCondition condition = null;
+        switch (selection) {
+            case 1:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.equals;
+                break;
+            case 2:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.greaterThan;
+                break;
+            case 3:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.lessThan;
+                break;
+            case 4:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.greaterOrEqualTo;
+                break;
+            case 5:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.lessOrEqualTo;
+                break;
+            case 6:
+                searchValue = getNumbericValue();
+                condition = FilterCondition.between;
+                break;
+            case 7:
+                condition = FilterCondition.Null;
+            break;
+            case 0:
+                mainMenu();
             break;
             }
+        return new Filter(column, Number.class, searchValue, condition);
+    }
 
+    private void printNumbericSubMenu() {
+        System.out.println("\t 1 - Equals");
+        System.out.println("\t 2 - Greater than");
+        System.out.println("\t 3 - Less than");
+        System.out.println("\t 4 - Greater than or equal to");
+        System.out.println("\t 5 - Less than or equal to");
+        System.out.println("\t 6 - Between");
+        System.out.println("\t 7 - Null");
+        System.out.println("\t 0 - Back");
+    }
+
+    Filter getTimeFilter(String column){
+        printNumbericSubMenu();
+
+        int selection = getIntInput(1, 2, 3, 4, 5, 6, 7, 0);
+        String searchValue = null;
+        FilterCondition condition = null;
+        switch (selection) {
+            case 1:
+                searchValue = getTimeValue();
+                condition = FilterCondition.equals;
+                break;
+            case 2:
+                searchValue = getTimeValue();
+                condition = FilterCondition.greaterThan;
+                break;
+            case 3:
+                searchValue = getTimeValue();
+                condition = FilterCondition.lessThan;
+                break;
+            case 4:
+                searchValue = getTimeValue();
+                condition = FilterCondition.greaterOrEqualTo;
+                break;
+            case 5:
+                searchValue = getTimeValue();
+                condition = FilterCondition.lessOrEqualTo;
+                break;
+            case 6:
+                searchValue = getTimeValue();
+                condition = FilterCondition.between;
+                break;
+            case 7:
+                condition = FilterCondition.Null;
+            break;
+            case 0:
+                mainMenu();
+            break;
+            }
+        return new Filter(column, LocalTime.class, searchValue, condition);
+    }
+
+    private String getTimeValue() {
+        System.out.println("Please enter value to search:");
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+            if (!Utils.tryParseTime(input)) {
+                System.out.println("Time vaue is expexted.");
+                continue;
+            }
+            return input;
+        }    
+    }
+
+    String getStringValue() {
+        System.out.println("Please enter value to search:");
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+            return input;
+        }
+    }
+
+    String getNumbericValue() {
+        System.out.println("Please enter value to search:");
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+            if (!Utils.tryParseNumber(input)) {
+                System.out.println("Numeric vaue is expexted.");
+                continue;
+            }
+            return input;
+        }
     }
 
     void listCoulmnNames(){
@@ -65,7 +376,7 @@ public class Menu {
         System.out.println(Arrays.toString(headers));
     }
 
-    void listEntities(){
+    void listEntities() {
         System.out.println("\t 1 - List all the fields of each entity");
         System.out.println("\t 2 - List only the selected fields of each entity");
         System.out.println("\t 3 - List entities based on the range of rows");
@@ -75,19 +386,19 @@ public class Menu {
         switch (selection) {
             case 1:
                 ReportManager.listCrashes(crashes);
-            break;
+                break;
             case 2:
                 String[] specifiedFields = getFieldNames();
                 ReportManager.listCrashes(crashes, specifiedFields);
-            break;
+                break;
             case 3:
                 Range range = getRowsRange();
                 ReportManager.listCrashes(crashes, range.getStart(), range.getEnd());
-            break;
+                break;
             case 0:
                 mainMenu();
-            break;
-            }
+                break;
+        }
     }
 
     int getIntInput(int... allowedNumbers){
@@ -99,7 +410,7 @@ public class Menu {
             }
             int userInput = Integer.parseInt(input);
             if (!IntStream.of(allowedNumbers).anyMatch(x -> x == userInput)){
-                System.out.printf("Only numbers %s are expected\n", allowedNumbers.toString());
+                System.out.printf("Only numbers %s are expected\n", Arrays.toString(allowedNumbers));
                 continue;
             }
             return userInput;
