@@ -87,7 +87,7 @@ public class Crash {
     public String getClustID() {
         return clustid;
     }
-
+    //TODO: Remove
     public String fieldValueAsString(String fieldName){
         switch(fieldName){
             case "date":
@@ -113,7 +113,7 @@ public class Crash {
             case "registration":
                 return this.registration;
         
-            case "cn_In":
+            case "cn_in":
                 return this.cn_in;
         
             case "aboard":
@@ -128,13 +128,13 @@ public class Crash {
             case "survivors":
                 return String.valueOf(this.survivors);
         
-            case "survivalRate":
+            case "survivalrate":
                 return String.valueOf(this.survivalrate);
         
             case "summary":
                 return String.valueOf(this.summary);
         
-            case "clustId":
+            case "clustid":
                 return this.clustid;
 
             default:
@@ -148,5 +148,4 @@ public class Crash {
         + ", type: " + type + ", registration: " + registration + ", cn_In: " + cn_in + ", aboard: " + aboard + ", fatalities: " + fatalities
         + ", ground: " + ground + ", survivors: " + survivors + ", survivalRate: " + survivalrate + ", summary: " + summary + ", clustID: " + clustid + "]";
     }
-    
 }
