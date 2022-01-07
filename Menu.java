@@ -10,12 +10,16 @@ import java.util.stream.IntStream;
 public class Menu {
 
     private static Scanner scan = new Scanner(System.in);
+    private List<Crash> originaList;
     private List<Crash> crashes;
     private String[] headers;
+    private String[] specifiedFields;
     
     public Menu(List<Crash> crashes, String[] headers) {
-        this.crashes = crashes;
+        this.originaList = crashes;
+        this.crashes = new ArrayList<Crash>(originaList);
         this.headers = headers;
+        this.specifiedFields = Arrays.copyOf(headers, headers.length);
     }
 
     void start(){
@@ -30,9 +34,11 @@ public class Menu {
         System.out.println("\t 3 - to search entities");
         System.out.println("\t 4 - to list column names");
         System.out.println("\t 5 - to filter entities");
+        System.out.println("\t 6 - export to file");
+        System.out.println("\t 7 - reset filters");
         System.out.println("\t 0 - to exit");
 
-        int selection = getIntInput(1, 2, 3, 4, 5, 0);
+        int selection = getIntInput(1, 2, 3, 4, 5, 6, 7, 0);
 
         switch (selection) {
             case 1:
@@ -50,10 +56,34 @@ public class Menu {
             case 5:
                 filterEntities();
                 break;
+            case 6:
+                exportToFile();
+                break;
+            case 7:
+                resetFilters();
+                break;
             case 0:
                 System.exit(0);
                 break;
         }
+    }
+
+    private void exportToFile() {
+        if(crashes == null || crashes.size() == 0){
+            System.out.println("No elements to export. Reset filters and try again.");
+            return;
+        }
+
+        if (Utils.writeToFile("./exportedReport.csv", crashes, specifiedFields))
+            System.out.println("Report exported successfully");
+        else
+            System.out.println("Failed to export report");
+    }
+
+    private void resetFilters() {
+        this.crashes = new ArrayList<Crash>(originaList);
+        this.specifiedFields = Arrays.copyOf(headers, headers.length);
+        mainMenu();
     }
 
     void filterEntities() {
@@ -64,8 +94,8 @@ public class Menu {
         switch (selection) {
             case 1:
                 Filter filter = getFilterConditions();
-                List<Crash> filteredList = ReportManager.filterByValue(crashes, filter);
-                ReportManager.listCrashes(filteredList);
+                crashes = ReportManager.filterByValue(crashes, filter);
+                System.out.printf("%d crashe(s) are found. \n", crashes.size());
                 break;
             case 0:
                 mainMenu();
@@ -144,6 +174,7 @@ public class Menu {
                 condition = FilterCondition.Null;
                 break;
             case 8:
+            //TODO: prompt to enter year, month, day
                 searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1900, 2022).toArray()));
                 condition = FilterCondition.inSpecificYear;
                 break;
@@ -186,8 +217,6 @@ public class Menu {
         System.out.println("\t 8 - In a specific year");
         System.out.println("\t 9 - In a specific month");
         System.out.println("\t 10 - In a specific day");
-
-        System.out.println("\t 0 - Back");
     }
 
     Filter getStringFilter(String column) {
@@ -388,7 +417,7 @@ public class Menu {
                 ReportManager.listCrashes(crashes);
                 break;
             case 2:
-                String[] specifiedFields = getFieldNames();
+                specifiedFields = getFieldNames();
                 ReportManager.listCrashes(crashes, specifiedFields);
                 break;
             case 3:
@@ -462,8 +491,8 @@ public class Menu {
         switch (selection) {
             case 1:
                 Sort sort = getSortConditions();
-                List<Crash> sortedList = ReportManager.sortByFieldName(crashes, sort.getColumn(), sort.getOrder());
-                ReportManager.listCrashes(sortedList);
+                crashes = ReportManager.sortByFieldName(crashes, sort.getColumn(), sort.getOrder());
+                System.out.println("List is sorted.");
                 break;
             case 0:
                 mainMenu();
@@ -485,6 +514,10 @@ public class Menu {
                 continue;
             }
             String column = params[0].trim();
+            if (!Arrays.stream(headers).anyMatch(column::equals)) {
+                System.out.println("No such column exists. Try again: ");
+                continue;
+            }
             String order = "asc";
             if(params.length>1){
                 String temp = params[1].trim();
@@ -504,8 +537,8 @@ public class Menu {
         switch (selection) {
             case 1:
                 Search search = getSearchConditions();
-                List<Crash> filteredList = ReportManager.searchByFieldName(crashes, search.getColumn(), search.getValue());
-                ReportManager.listCrashes(filteredList);
+                crashes = ReportManager.searchByFieldName(crashes, search.getColumn(), search.getValue());
+                System.out.printf("%d crashe(s) are found.\n", crashes.size());
                 break;
             case 0:
                 mainMenu();
@@ -527,6 +560,10 @@ public class Menu {
                 continue;
             }
             String column = params[0].trim();
+            if (!Arrays.stream(headers).anyMatch(column::equals)) {
+                System.out.println("No such column exists. Try again: ");
+                continue;
+            }
             String value = params[1].trim();
             if(params.length>2){
                 value = input.substring(input.indexOf(column.length())).trim();

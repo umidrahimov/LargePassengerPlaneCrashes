@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
@@ -49,15 +50,23 @@ public final class Utils {
         return list;
     }
 
-    public static Boolean writeToFile(String path, ArrayList<Crash> crashs, String header) {
+    public static Boolean writeToFile(String path, List<Crash> crashs, String[] headers) {
 
         File file = new File(path);
+        String header = String.join(", ", headers);
+
         try (FileWriter fw = new FileWriter(file)) {
             file.createNewFile();
             fw.write(header + "\n");
-
+            //TODO: continue here
             for (Crash crash : crashs) {
-                fw.write(crash.toString() + "\n");
+
+                String[] line = new String[headers.length];
+                for (int i = 0; i < headers.length; i++) {
+                    line[i] = crash.fieldValueAsString(headers[i]);
+                }
+
+                fw.write(String.join(", ", line) + "\n");
             }
             return true;
         } catch (FileNotFoundException ex) {
@@ -141,6 +150,7 @@ public final class Utils {
             return false;
         }
     }
+
     public static boolean tryParseNumber(String value) {
         try {
             Float.parseFloat(value);

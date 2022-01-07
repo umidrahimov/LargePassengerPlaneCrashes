@@ -38,7 +38,7 @@ public abstract class ReportManager {
 
     //UR: added method
     static void listCrashes(List<Crash> crashes, String[] specifiedFields){
-        listCrashes(crashes, 0, crashes.size(), specifiedFields);
+        listCrashes(crashes, 0, crashes.size()-1, specifiedFields);
     }
     
     static void listCrashes(List<Crash> crashes, int start , int end, String[] specifiedFields){
@@ -51,6 +51,7 @@ public abstract class ReportManager {
                     //UR: compare by value, not reference
                     if(fieldNames[j].equals(specifiedField)){
                     //if(fieldNames[j]==specifiedField){
+                        //TODO: last index shouldn't have comma at the end
                         System.out.print(fieldNames[j] + ": " + crashes.get(i).fieldValueAsString(fieldNames[j]) + ", ");
                         break;
                     }
