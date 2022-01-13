@@ -17,7 +17,6 @@ public class Menu {
     private List<Crash> crashes;
     private String[] headers;
     private String[] specifiedFields;
-    private Integer reportSequence = 1;
     
     public Menu(List<Crash> crashes, String[] headers) {
         this.originaList = crashes;
