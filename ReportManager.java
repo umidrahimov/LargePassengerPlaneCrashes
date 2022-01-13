@@ -136,6 +136,22 @@ public abstract class ReportManager {
                 return false;
             }
 
+            if (value instanceof LocalDate) {
+                if (!Utils.tryParseDate(targetValue))
+                    return false;
+                if (((LocalDate.parse(value.toString())).equals(LocalDate.parse(targetValue))))
+                    return true;
+                return false;
+            }
+
+            if (value instanceof LocalTime) {
+                if (!Utils.tryParseTime(targetValue))
+                    return false;
+                if (((LocalTime.parse(value.toString())).equals(LocalTime.parse(targetValue))))
+                    return true;
+                return false;
+            }
+
             if(value == targetValue)
                 return true;
             

@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -9,6 +11,7 @@ import java.util.stream.IntStream;
 
 public class Menu {
 
+    private static final char[] ILLEGAL_CHARACTERS = {'/','\\', ':', '*', '?', '"', '<', '>', '|'};
     private static Scanner scan = new Scanner(System.in);
     private List<Crash> originaList;
     private List<Crash> crashes;
@@ -70,15 +73,44 @@ public class Menu {
     }
 
     private void exportToFile() {
-        if(crashes == null || crashes.size() == 0){
-            System.out.println("No elements to export. Reset filters and try again.");
-            return;
-        }
+        while (true) {
+            if (crashes == null || crashes.size() == 0) {
+                System.out.println("No elements to export. Reset filters and try again.");
+                return;
+            }
 
-        if (Utils.writeToFile("./exportedReport" + reportSequence++ + ".csv", crashes, specifiedFields))
-            System.out.println("Report exported successfully");
-        else
-            System.out.println("Failed to export report");
+            System.out.println("Please enter file name without extension. If file name exists it will be overridden.");
+
+            String fileName = scan.nextLine().trim();
+            if (fileName == null || fileName.length() == 0) {
+                System.out.println("File name cannot be empty. Please try againg:");
+                continue;
+            }
+            try {
+                for (char c : ILLEGAL_CHARACTERS) {
+                    if (fileName.indexOf(c) != -1) {
+                        System.out.println(
+                                "A filename can't contain any of the following chaachters: \\ / | \" < > ? : *");
+                        throw new IllegalArgumentException();
+                    }
+                }
+            } catch (Exception e) {
+                continue;
+            }
+            File f = new File("./" + fileName, ".csv");
+            try {
+                f.getCanonicalPath();
+            } catch (IOException e) {
+                System.out.println("Cannot create a file with specified name. Please try another file name");
+                continue;
+            }
+
+            if (Utils.writeToFile("./" + fileName + ".csv", crashes, specifiedFields)) {
+                System.out.println("Report exported successfully");
+                return;
+            } else
+                System.out.println("Failed to export report");
+        }
     }
 
     private void resetFilters() {
@@ -174,18 +206,20 @@ public class Menu {
                 condition = FilterCondition.Null;
                 break;
             case 8:
-            //TODO: prompt to enter year, month, day
+                System.out.println("Enter any year in interval [1900-2022]");
                 searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1900, 2022).toArray()));
                 condition = FilterCondition.inSpecificYear;
                 break;
             case 9:
-            searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 12).toArray()));
-            condition = FilterCondition.inSpecificMonth;
+                System.out.println("Enter any month number in interval [1-12]");
+                searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 12).toArray()));
+                condition = FilterCondition.inSpecificMonth;
                 break;
             case 10:
-            searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 31).toArray()));
-            condition = FilterCondition.inSpecificDay;
-            break;
+                System.out.println("Enter any day number in interval [1-31]");
+                searchValue = String.valueOf(getIntInput(IntStream.rangeClosed(1, 31).toArray()));
+                condition = FilterCondition.inSpecificDay;
+                break;
         }
         return new Filter(column, LocalDate.class, searchValue, condition);
     }
@@ -542,17 +576,21 @@ public class Menu {
                 System.out.println("Empty input is detected.");
                 continue;
             }
-            String[] ranges = input.split("\\W+");
+            String[] ranges = input.split(" ");
             if(ranges.length!=2){
-                System.out.println("2 values for the range are expected. E.g: 5 100. Try again:");
+                System.out.println("2 integer values for the range are expected. E.g: 5 100. Try again:");
                 continue;
             }
-            for (int i = 0; i < ranges.length; i++) {
-                ranges[i] = ranges[i].trim();
-                if(!Utils.tryParseInt(ranges[i])){
-                    System.out.println("Integer values are expected for the range. Try again:");
-                    continue;
-                }
+            try {
+                for (int i = 0; i < ranges.length; i++) {
+                    ranges[i] = ranges[i].trim();
+                    if(!Utils.tryParseInt(ranges[i])){
+                        System.out.println("Integer values are expected for the range. Try again:");
+                        throw new Exception("Integer values are expected for the range.");
+                    }
+                }   
+            } catch (Exception e) {
+                continue;
             }
             int start = Integer.parseInt(ranges[0]);
             if(start<0){
