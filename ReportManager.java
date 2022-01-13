@@ -91,12 +91,12 @@ public abstract class ReportManager {
                             return Float.valueOf(num2.floatValue()).compareTo(Float.valueOf(num1.floatValue()));
                     }
                 } catch (IllegalAccessException e) {
-                    System.out.println("Error: " + e.getMessage());
+                    System.out.println("Cannot access selected filed. Please contact administrator.");
                     return 0;
                 }
             }).collect(Collectors.toList());
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("Cannot retireve filed value. Please contact administrator.");
             return list;
         }
     }
@@ -141,7 +141,7 @@ public abstract class ReportManager {
             
             return false;
             } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
+            System.out.println("Cannot check the value of the selected field. Please verify your search conditions");
             return false;
         }
     }
@@ -230,7 +230,7 @@ public abstract class ReportManager {
             }
             return false;
         } catch (Exception e) {
-            System.out.println("Exception: " + e.getMessage());
+            System.out.println("Cannot check the value of the selected field. Please verify your search conditions");
             return false;
         }
     }

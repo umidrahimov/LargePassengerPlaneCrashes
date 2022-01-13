@@ -36,15 +36,11 @@ public final class Utils {
                 list.add(temp);
             }
         } catch (FileNotFoundException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Cannot find the file to read from. Please contact administrator.");
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        } catch (InvalidParameterException ex) {
-            System.out.println(ex.getMessage());
-        } catch (UnsupportedOperationException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Error occurred while reading the file. Please contact administrator");
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Cannot read the file. Please contact administrator.");
         }
 
         return list;
@@ -69,19 +65,13 @@ public final class Utils {
             }
             return true;
         } catch (FileNotFoundException ex) {
-            System.out.println("Caught exception: " + ex.getMessage());
+            System.out.println("Cannot find the file to write to. Please contact administrator.");
             return false;
         } catch (IOException ex) {
-            System.out.println("Caught exception: " + ex.getMessage());
-            return false;
-        } catch (InvalidParameterException ex) {
-            System.out.println("Caught exception: " + ex.getMessage());
-            return false;
-        } catch (UnsupportedOperationException ex) {
-            System.out.println("Caught exception: " + ex.getMessage());
+            System.out.println("Error occurred while writing to the file. Please contact administrator.");
             return false;
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Could not export report. Please contact administrator.");
             return false;
         }
     }
@@ -140,12 +130,11 @@ public final class Utils {
         return fields;
     }
 
-    //TODO: Make 1 generic method
     public static boolean tryParseInt(String value) {
         try {
             Integer.parseInt(value);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -154,7 +143,7 @@ public final class Utils {
         try {
             Double.parseDouble(value);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }

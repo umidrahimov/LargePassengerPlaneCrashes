@@ -131,11 +131,9 @@ public class Menu {
                 }
                 return filter;
             } catch (NoSuchFieldException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println("Selected column does not exist");
             } catch (SecurityException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println("You have no access to selected column. Please contact administrator");
             }
         }
     }
