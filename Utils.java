@@ -58,9 +58,8 @@ public final class Utils {
         try (FileWriter fw = new FileWriter(file)) {
             file.createNewFile();
             fw.write(header + "\n");
-            //TODO: continue here
-            for (Crash crash : crashs) {
 
+            for (Crash crash : crashs) {
                 String[] line = new String[headers.length];
                 for (int i = 0; i < headers.length; i++) {
                     line[i] = crash.fieldValueAsString(headers[i]);
@@ -153,7 +152,7 @@ public final class Utils {
 
     public static boolean tryParseNumber(String value) {
         try {
-            Float.parseFloat(value);
+            Double.parseDouble(value);
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -164,7 +163,7 @@ public final class Utils {
         try {
             LocalTime.parse(value);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -173,7 +172,7 @@ public final class Utils {
         try {
             LocalDate.parse(value);
             return true;
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return false;
         }
     }
