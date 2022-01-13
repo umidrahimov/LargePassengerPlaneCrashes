@@ -19,7 +19,7 @@ public class Crash {
     private String clustid;
     
     public Crash(LocalDate date, LocalTime time, String location, String operator, String flight, String route, String type,
-            String registration, String cn_In, int aboard, int fatalities, int ground, int survivors,
+            String registration, String cn_in, int aboard, int fatalities, int ground, int survivors,
             double survivalRate, String summary, String clustID) {
         this.date = date;
         this.time = time;
@@ -29,7 +29,7 @@ public class Crash {
         this.route = route;
         this.type = type;
         this.registration = registration;
-        this.cn_in = cn_In;
+        this.cn_in = cn_in;
         this.aboard = aboard;
         this.fatalities = fatalities;
         this.ground = ground;
@@ -110,9 +110,11 @@ public class Crash {
         
             case "type":
                 return this.type;
+
             case "registration":
                 return this.registration;
         
+            case "cn.in":
             case "cn_in":
                 return this.cn_in;
         
@@ -145,7 +147,7 @@ public class Crash {
     @Override
     public String toString() {
         return "[date: " + date+ ", time: " + time + ", location: " + location + ", operator: " + operator + ", flight: " + flight + ", route: " + route
-        + ", type: " + type + ", registration: " + registration + ", cn_In: " + cn_in + ", aboard: " + aboard + ", fatalities: " + fatalities
+        + ", type: " + type + ", registration: " + registration + ", cn.in: " + cn_in + ", aboard: " + aboard + ", fatalities: " + fatalities
         + ", ground: " + ground + ", survivors: " + survivors + ", survivalRate: " + survivalrate + ", summary: " + summary + ", clustID: " + clustid + "]";
     }
 }

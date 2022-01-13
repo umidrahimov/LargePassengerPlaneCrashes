@@ -41,23 +41,13 @@ public abstract class ReportManager {
         listCrashes(crashes, 0, crashes.size()-1, specifiedFields);
     }
     
-    static void listCrashes(List<Crash> crashes, int start , int end, String[] specifiedFields){
-        String[] fieldNames = getFieldNames(crashes.get(0));
-
-        for (int i = start; i < end ; i++) {
+    static void listCrashes(List<Crash> crashes, int start, int end, String[] specifiedFields) {
+        for (int i = start; i <= end; i++) {
             System.out.print("[");
-            for(int j = 0; j<16 ; j++){
-                for(String specifiedField: specifiedFields){
-                    //UR: compare by value, not reference
-                    if(fieldNames[j].equals(specifiedField)){
-                    //if(fieldNames[j]==specifiedField){
-                        //TODO: last index shouldn't have comma at the end
-                        System.out.print(fieldNames[j] + ": " + crashes.get(i).fieldValueAsString(fieldNames[j]) + ", ");
-                        break;
-                    }
-                }
+            for (int j = 0; j < specifiedFields.length - 1; j++) {
+                System.out.print(specifiedFields[j] + ": " + crashes.get(i).fieldValueAsString(specifiedFields[j]) + ", ");
             }
-            System.out.println("]");
+            System.out.print(specifiedFields[specifiedFields.length-1] + ": " + crashes.get(i).fieldValueAsString(specifiedFields[specifiedFields.length-1]) + "]\n");
         }
         System.out.println("\nTotal number of records listed: " + String.valueOf(end - start + 1) + "\n");
     }
@@ -65,7 +55,7 @@ public abstract class ReportManager {
     //UR: rewrote sort method using reflection
     public static List<Crash> sortByFieldName(List<Crash> list, String fieldName, String order) {
         try {
-            Field field = Crash.class.getDeclaredField(fieldName);
+            Field field = Crash.class.getDeclaredField(fieldName.replace('.', '_'));
             field.setAccessible(true);
 
             return list.stream().sorted((first, second) -> {
@@ -125,7 +115,7 @@ public abstract class ReportManager {
 
     private static boolean checkFieldValue(Crash crash, String column, String targetValue) {
         try {
-            Field field = crash.getClass().getDeclaredField(column);    
+            Field field = crash.getClass().getDeclaredField(column.replace('.', '_'));    
             field.setAccessible(true);
             Object value = field.get(crash);
 
@@ -134,6 +124,14 @@ public abstract class ReportManager {
 
             if (value instanceof String) {
                 if (((String) value).toLowerCase().contains(targetValue))
+                    return true;
+                return false;
+            }
+
+            if (value instanceof Number) {
+                if (!Utils.tryParseNumber(targetValue))
+                    return false;
+                if (((Double.valueOf(value.toString())).equals(Double.parseDouble(targetValue))))
                     return true;
                 return false;
             }
@@ -164,6 +162,7 @@ public abstract class ReportManager {
                 case Null:
                     return value == null ? true : false;
                 case equals:
+                    if(value==null) return false;
                     if(filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
                     if(filter.getFieldType() == LocalTime.class)
@@ -172,6 +171,7 @@ public abstract class ReportManager {
                         return (Float.valueOf(value.toString())).equals(Float.valueOf(filter.getValue())) ? true : false;
                     break;
                 case greaterThan:
+                    if(value==null) return false;
                     if(filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue())) ? true : false;
                     if(filter.getFieldType() == LocalTime.class)
@@ -180,6 +180,7 @@ public abstract class ReportManager {
                         return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) > 0 ? true : false;
                     break;
                 case lessThan:
+                    if(value==null) return false;
                     if (filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getValue())) ? true : false;
                     if (filter.getFieldType() == LocalTime.class)
@@ -188,6 +189,7 @@ public abstract class ReportManager {
                         return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) < 0 ? true : false;
                     break;
                 case greaterOrEqualTo:
+                    if(value==null) return false;
                     if (filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue()))
                                 || (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
@@ -198,6 +200,7 @@ public abstract class ReportManager {
                         return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) >= 0 ? true : false;
                     break;
                 case lessOrEqualTo:
+                    if(value==null) return false;
                     if (filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getValue()))
                                 || (LocalDate.parse(value.toString())).equals(LocalDate.parse(filter.getValue())) ? true : false;
@@ -208,6 +211,7 @@ public abstract class ReportManager {
                         return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) <= 0 ? true : false;
                     break;
                 case between:
+                    if(value==null) return false;
                     if (filter.getFieldType() == LocalDate.class)
                         return (LocalDate.parse(value.toString())).isAfter(LocalDate.parse(filter.getValue()))
                                 && (LocalDate.parse(value.toString())).isBefore(LocalDate.parse(filter.getLastValue())) ? true : false;
@@ -215,17 +219,14 @@ public abstract class ReportManager {
                         return (LocalTime.parse(value.toString())).isAfter(LocalTime.parse(filter.getValue()))
                                 && (LocalTime.parse(value.toString())).isBefore(LocalTime.parse(filter.getLastValue())) ? true : false;
                     if (filter.getFieldType() == Number.class)
-                        return (Float.valueOf(value.toString())).compareTo(Float.valueOf(filter.getValue())) <= 0 ? true
-                                : false;
-                    break;
+                        return (Double.valueOf(value.toString())).compareTo(Double.valueOf(filter.getValue())) >= 0 
+                                && (Double.valueOf(value.toString())).compareTo(Double.valueOf(filter.getLastValue())) <= 0? true : false;
                 case inSpecificYear:
                     return (LocalDate.parse(value.toString()).getYear()) == (Integer.parseInt(filter.getValue())) ? true : false;
                 case inSpecificMonth:
                     return (LocalDate.parse(value.toString()).getMonthValue()) == (Integer.parseInt(filter.getValue())) ? true : false;
                 case inSpecificDay:
                     return (LocalDate.parse(value.toString()).getDayOfMonth()) == (Integer.parseInt(filter.getValue())) ? true : false;
-                default:
-                    break;
             }
             return false;
         } catch (Exception e) {

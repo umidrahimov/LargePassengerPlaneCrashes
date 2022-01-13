@@ -14,6 +14,7 @@ public class Menu {
     private List<Crash> crashes;
     private String[] headers;
     private String[] specifiedFields;
+    private Integer reportSequence = 1;
     
     public Menu(List<Crash> crashes, String[] headers) {
         this.originaList = crashes;
@@ -74,7 +75,7 @@ public class Menu {
             return;
         }
 
-        if (Utils.writeToFile("./exportedReport.csv", crashes, specifiedFields))
+        if (Utils.writeToFile("./exportedReport" + reportSequence++ + ".csv", crashes, specifiedFields))
             System.out.println("Report exported successfully");
         else
             System.out.println("Failed to export report");
@@ -121,7 +122,7 @@ public class Menu {
                 Filter filter = null;
                 if (fieldType.equals(String.class)) {
                     filter = getStringFilter(input);
-                } else if (fieldType.equals(Number.class)) {
+                } else if (fieldType.equals(int.class) || fieldType.equals(double.class)) {
                     filter = getNumberFilter(input);
                 } else if (fieldType.equals(LocalTime.class)) {
                     filter = getTimeFilter(input);
@@ -167,9 +168,10 @@ public class Menu {
                 condition = FilterCondition.lessOrEqualTo;
                 break;
             case 6:
-                searchValue = getDateValue();
+                searchValue = getDateValues();
+                String[] dates = searchValue.split(" ");
                 condition = FilterCondition.between;
-                break;
+                return new Filter(column, LocalDate.class, dates[0].trim(), dates[1].trim(), condition);
             case 7:
                 condition = FilterCondition.Null;
                 break;
@@ -188,6 +190,35 @@ public class Menu {
             break;
         }
         return new Filter(column, LocalDate.class, searchValue, condition);
+    }
+
+    private String getDateValues() {
+        System.out.println("Please enter date intervals to search (E.g: 1992-10-26 1996-12-16):");
+
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+
+            String[] dates = input.split(" ");
+
+            if (dates.length>2){
+                System.out.println("Only 2 date values are expected. E.g: 1992-10-26 1996-12-16");
+                continue;
+            }
+
+            for (String date : dates) {
+                if (!Utils.tryParseDate(date.trim())) {
+                    System.out.printf("Date vaue is expected instead of %s.\n", date);
+                    continue;
+                }
+            }
+
+            return input;
+        }    
     }
 
     private String getDateValue() {
@@ -284,9 +315,10 @@ public class Menu {
                 condition = FilterCondition.lessOrEqualTo;
                 break;
             case 6:
-                searchValue = getNumbericValue();
+                searchValue = getNumbericValues();
+                String[] numbers = searchValue.split(" ");
                 condition = FilterCondition.between;
-                break;
+                return new Filter(column, Number.class, numbers[0], numbers[1], condition);
             case 7:
                 condition = FilterCondition.Null;
             break;
@@ -336,9 +368,10 @@ public class Menu {
                 condition = FilterCondition.lessOrEqualTo;
                 break;
             case 6:
-                searchValue = getTimeValue();
+                searchValue = getTimeValues();
+                String[] times = searchValue.split(" ");
                 condition = FilterCondition.between;
-                break;
+                return new Filter(column, LocalTime.class, times[0], times[1], condition);
             case 7:
                 condition = FilterCondition.Null;
             break;
@@ -347,6 +380,35 @@ public class Menu {
             break;
             }
         return new Filter(column, LocalTime.class, searchValue, condition);
+    }
+
+    private String getTimeValues() {
+        System.out.println("Please enter time intervals to search (E.g: 11:30 13:00):");
+
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+
+            String[] times = input.split(" ");
+
+            if (times.length>2){
+                System.out.println("Only 2 time values are expected. E.g: 11:30 13:00");
+                continue;
+            }
+
+            for (String time : times) {
+                if (!Utils.tryParseTime(time.trim())) {
+                    System.out.printf("Time vaue is expected instead of %s.\n", time);
+                    continue;
+                }
+            }
+
+            return input;
+        }  
     }
 
     private String getTimeValue() {
@@ -393,6 +455,33 @@ public class Menu {
         }
     }
 
+    private String getNumbericValues() {
+        System.out.println("Please enter interval to search (E.g: 5 11):");
+        while (true) {
+            String input = scan.nextLine().toLowerCase().trim();
+            if (input.isEmpty()) {
+                System.out.println("Empty input is detected.");
+                continue;
+            }
+
+            String[] numbers = input.split(" ");
+
+            if (numbers.length>2){
+                System.out.println("Only 2 numeric values are expected. E.g: 5 11");
+                continue;
+            }
+
+            for (String number : numbers) {
+                if (!Utils.tryParseNumber(number.trim())) {
+                    System.out.printf("Numeric vaue is expected instead of %s.\n", number);
+                    continue;
+                }
+            }
+
+            return input;
+        }
+    }
+
     void listCoulmnNames(){
         StringBuilder sb = new StringBuilder();
         sb.append("[ ");
@@ -414,6 +503,7 @@ public class Menu {
         int selection = getIntInput(1, 2, 3, 0);
         switch (selection) {
             case 1:
+                specifiedFields = Arrays.copyOf(headers, headers.length);
                 ReportManager.listCrashes(crashes);
                 break;
             case 2:
@@ -432,7 +522,7 @@ public class Menu {
 
     int getIntInput(int... allowedNumbers){
         while (true) {
-            String input = scan.nextLine();
+            String input = scan.nextLine().trim();
             if(!Utils.tryParseInt(input)){
                 System.out.println("Integer value is expected. Try again:");
                 continue;
@@ -454,7 +544,7 @@ public class Menu {
                 System.out.println("Empty input is detected.");
                 continue;
             }
-            String[] ranges = input.split(" ");
+            String[] ranges = input.split("\\W+");
             if(ranges.length!=2){
                 System.out.println("2 values for the range are expected. E.g: 5 100. Try again:");
                 continue;
@@ -503,7 +593,7 @@ public class Menu {
     Sort getSortConditions(){
         System.out.println("Please enter sort conditions. E.g: {fieldname} {ASC|DESC}"); 
         while (true) {
-            String input = scan.nextLine().toLowerCase();
+            String input = scan.nextLine().toLowerCase().trim();
             if(input.isEmpty()){
                 System.out.println("Empty input is detected.");
                 continue;
@@ -549,7 +639,7 @@ public class Menu {
     Search getSearchConditions() {
         System.out.println("Please enter search conditions. E.g: {fieldname} {value}"); 
         while (true) {
-            String input = scan.nextLine().toLowerCase();
+            String input = scan.nextLine().toLowerCase().trim();
             if(input.isEmpty()){
                 System.out.println("Empty input is detected.");
                 continue;
@@ -566,7 +656,7 @@ public class Menu {
             }
             String value = params[1].trim();
             if(params.length>2){
-                value = input.substring(input.indexOf(column.length())).trim();
+                value = input.substring(column.length()).trim();
             }
             Search search = new Search(column, value);
             return search;
